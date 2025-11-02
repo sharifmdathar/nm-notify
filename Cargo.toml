@@ -1,9 +1,15 @@
 [package]
 name = "nm-notify"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 license = "MIT"
 
 [dependencies]
 notify-rust = "4"
 anyhow = "1.0"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
