@@ -58,6 +58,7 @@ Connected to: MyHomeNetwork
 ```
 
 When you move to another Wi-Fi (or NetworkManager roams automatically), you'll get a desktop notification like:
+
 <img width="538" height="87" alt="screenshot-2025-11-01_22-26-42" src="https://github.com/user-attachments/assets/d542c911-135d-4293-bc26-f0b9267571fa" />
 
 
@@ -67,19 +68,41 @@ To make `nm-notify` automatically start when you log in, you can set it up as a 
 
 ### Setup
 
-1. **Create the systemd user service directory** (if it doesn't exist):
+1. **Copy the binary to `~/.local/bin`** (recommended location for user-installed binaries):
+
+   ```bash
+   # Create the directory if it doesn't exist
+   mkdir -p ~/.local/bin
+   
+   # Copy the binary (adjust the source path based on how you obtained it)
+   # If you built from source:
+   cp target/release/nm-notify ~/.local/bin/nm-notify
+   
+   # If you downloaded a pre-compiled binary:
+   # cp /path/to/downloaded/nm-notify ~/.local/bin/nm-notify
+   
+   # Make sure it's executable
+   chmod +x ~/.local/bin/nm-notify
+   ```
+
+   **Note:** Make sure `~/.local/bin` is in your PATH. Most Linux distributions include it by default, but if it's not, add this to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.):
+   ```bash
+   export PATH="$HOME/.local/bin:$PATH"
+   ```
+
+2. **Create the systemd user service directory** (if it doesn't exist):
 
    ```bash
    mkdir -p ~/.config/systemd/user
    ```
 
-2. **Create the service file**:
+3. **Create the service file**:
 
    ```bash
    nano ~/.config/systemd/user/nm-notify.service
    ```
 
-3. **Add the following content** (adjust the path to your binary):
+4. **Add the following content**:
 
    ```ini
    [Unit]
@@ -89,7 +112,7 @@ To make `nm-notify` automatically start when you log in, you can set it up as a 
 
    [Service]
    Type=simple
-   ExecStart=/path/to/nm-notify
+   ExecStart=%h/.local/bin/nm-notify
    Restart=on-failure
    RestartSec=5
 
@@ -97,19 +120,16 @@ To make `nm-notify` automatically start when you log in, you can set it up as a 
    WantedBy=default.target
    ```
 
-   **Note:** Replace `/path/to/nm-notify` with the actual path to your binary:
+   **Note:** The `%h` in `ExecStart` is a systemd specifier that expands to your home directory. If you prefer, you can use an absolute path like `/home/username/.local/bin/nm-notify` instead.
 
-   - If you compiled from source: `%h/path/to/nm-notify/target/release/nm-notify` (or use an absolute path)
-   - If you downloaded a binary: the full path where you placed it (e.g., `%h/.local/bin/nm-notify`)
-
-4. **Reload systemd and enable the service**:
+5. **Reload systemd and enable the service**:
 
    ```bash
    systemctl --user daemon-reload
    systemctl --user enable --now nm-notify.service
    ```
 
-5. **Verify it's running**:
+6. **Verify it's running**:
    ```bash
    systemctl --user status nm-notify.service
    ```
